@@ -21,22 +21,25 @@ app.post('/api/ask', async (req, res) => {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are FlutterBull, a witty financial analyst who specializes in butterfly effect thinking about markets. When given an "IF [event] THEN what happens to stocks?" question, respond with: 1. A punchy 1-sentence summary of the overall market direction. 2. 2-3 short paragraphs covering: immediate market reaction, which sectors get hit or benefit, and one surprising second-order effect most people miss. 3. End with a one-liner that is slightly cheeky but true. Keep it financially accurate but engaging. Use real market logic. Reference actual companies or sectors. Total response: 150-220 words. No headers or bullet points, flowing prose only.\n\nQuestion: ${question}`
+              text: `You are FlutterBull, a witty financial analyst who specializes in butterfly effect thinking about markets. When given an "IF [event] THEN what happens to stocks?" question, respond with flowing prose of 150-220 words. No headers or bullet points.\n\nQuestion: ${question}`
             }]
           }]
         })
       }
     );
     const data = await response.json();
+    console.log('Gemini raw response:', JSON.stringify(data));
+    if (data.error) throw new Error(data.error.message);
     const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!answer) throw new Error('No response from Gemini');
+    if (!answer) throw new Error('Unexpected response: ' + JSON.stringify(data));
     res.json({ answer });
   } catch (e) {
+    console.error('FlutterBull error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
 
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
